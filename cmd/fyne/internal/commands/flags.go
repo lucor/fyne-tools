@@ -66,6 +66,13 @@ var stringFlags = map[string]func(*string) cli.Flag{
 			Destination: dst,
 		}
 	},
+	"android-dex": func(dst *string) cli.Flag {
+		return &cli.StringFlag{
+			Name:        "android-dex",
+			Usage:       "android: path to a DEX file to merge into the package",
+			Destination: dst,
+		}
+	},
 	"category": func(dst *string) cli.Flag {
 		return &cli.StringFlag{
 			Name:        "category",

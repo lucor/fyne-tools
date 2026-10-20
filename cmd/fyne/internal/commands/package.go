@@ -54,6 +54,7 @@ func Package() *cli.Command {
 			stringFlags["app-id"](&p.AppID),
 			stringFlags["certificate"](&p.certificate),
 			stringFlags["profile"](&p.profile),
+			stringFlags["android-dex"](&p.androidDex),
 			boolFlags["release"](&p.release),
 			genericFlags["metadata"](&p.customMetadata),
 			boolFlags["verbose"](&p.verbose),
@@ -74,6 +75,7 @@ type Packager struct {
 	srcDir, dir, exe, os           string
 	install, release, distribution bool
 	certificate, profile           string // optional flags for releasing
+	androidDex                     string // optional DEX file to merge into Android packages
 	tags, category                 string
 	tempDir                        string
 	langs                          []string
@@ -100,6 +102,7 @@ func (p *Packager) AddFlags() {
 	flag.StringVar(&p.icon, "icon", "", "The name of the application icon file")
 	flag.StringVar(&p.AppID, "app-id", "", "For ios or darwin targets an app-id is required, for ios this must \nmatch a valid provisioning profile")
 	flag.StringVar(&p.AppVersion, "app-version", "", "Version number in the form x, x.y or x.y.z semantic version")
+	flag.StringVar(&p.androidDex, "android-dex", "", "Path to an Android DEX file to merge into the package")
 	flag.IntVar(&p.AppBuild, "app-build", 0, "Build number, should be greater than 0 and incremented for each build")
 	flag.BoolVar(&p.release, "release", false, "Should this package be prepared for release? (disable debug etc)")
 	flag.StringVar(&p.tags, "tags", "", "A comma-separated list of build tags")

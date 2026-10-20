@@ -49,6 +49,7 @@ func Release() *cli.Command {
 			stringFlags["app-id"](&r.AppID),
 			stringFlags["certificate"](&r.certificate),
 			stringFlags["profile"](&r.profile),
+			stringFlags["android-dex"](&r.androidDex),
 			stringFlags["developer"](&r.developer),
 			stringFlags["password"](&r.password),
 			stringFlags["category"](&r.category),
@@ -96,6 +97,7 @@ func (r *Releaser) AddFlags() {
 	flag.StringVar(&r.keyPass, "keyPass", "", "Android: password for the signer's private key, which is needed if the private key is password-protected. Default take the password from stdin")
 	flag.StringVar(&r.certificate, "certificate", "", "iOS/macOS/Windows: name of the certificate to sign the build")
 	flag.StringVar(&r.profile, "profile", "", "iOS/macOS: name of the provisioning profile for this release build")
+	flag.StringVar(&r.androidDex, "android-dex", "", "Android: path to a DEX file to merge into the package")
 	flag.StringVar(&r.developer, "developer", "", "Windows: the developer identity for your Microsoft store account")
 	flag.StringVar(&r.password, "password", "", "Windows: password for the certificate used to sign the build")
 	flag.StringVar(&r.tags, "tags", "", "A comma-separated list of build tags")

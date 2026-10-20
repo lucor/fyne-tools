@@ -7,14 +7,12 @@ package mobile
 import (
 	"bytes"
 	"crypto/x509"
-	"encoding/base64"
 	"encoding/pem"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -47,7 +45,7 @@ const (
 
 func goAndroidBuild(pkg *packages.Package, bundleID string, androidArchs []string,
 	iconPath, appName, version string, build, target int, release bool, iconFG, iconBG, iconMono string,
-	capabilities metadata.Capabilities, splash *metadata.Splash,
+	capabilities metadata.Capabilities, splash *metadata.Splash, androidDex string,
 ) (map[string]bool, error) {
 	var env []string
 	if release { // Google Play Store requires 16K alignment
@@ -144,7 +142,7 @@ func goAndroidBuild(pkg *packages.Package, bundleID string, androidArchs []strin
 		out = f
 	}
 
-	apkw, err := buildAPK(out, nmpkgs, libFiles, androidArchs)
+	apkw, err := buildAPK(out, nmpkgs, libFiles, androidArchs, androidDex)
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +392,7 @@ func legacyAddAssets(apkw *Writer, manifestData []byte, iconPath string, target 
 	return nil
 }
 
-func buildAPK(out io.Writer, nmpkgs map[string]map[string]bool, libFiles []string, androidArchs []string) (*Writer, error) {
+func buildAPK(out io.Writer, nmpkgs map[string]map[string]bool, libFiles []string, androidArchs []string, androidDex string) (*Writer, error) {
 	block, _ := pem.Decode([]byte(debugCert))
 	if block == nil {
 		return nil, errors.New("no debug cert")
@@ -413,12 +411,14 @@ func buildAPK(out io.Writer, nmpkgs map[string]map[string]bool, libFiles []strin
 	if err != nil {
 		return nil, err
 	}
-	dexData, err := base64.StdEncoding.DecodeString(dexStr)
-	if err != nil {
-		log.Fatalf("internal error bad dexStr: %v", err)
-	}
-	if _, err := w.Write(dexData); err != nil {
-		return nil, err
+	if !buildN {
+		dexData, err := mergeAndroidDex(androidDex)
+		if err != nil {
+			return nil, err
+		}
+		if _, err := w.Write(dexData); err != nil {
+			return nil, err
+		}
 	}
 
 	for _, libFile := range libFiles {
