@@ -184,7 +184,7 @@ func writeSplashResources(resDir string, splash *metadata.Splash, iconPath strin
 // compileAndroidResources compiles Android resources using aapt2
 // Returns: resources.arsc path, res/ directory path, compiled AndroidManifest.xml path, error
 func compileAndroidResources(tempDir string, manifestData []byte, iconPath, foregroundPath, backgroundPath, monochromePath string,
-	splash *metadata.Splash, targetSDK, versionCode int, versionName string,
+	splash *metadata.Splash, targetSDK, versionCode int, versionName, extraResources string,
 ) (arscPath string, resDir string, manifestPath string, err error) {
 	aapt2, err := util.Aapt2Path()
 	if err != nil {
@@ -269,6 +269,15 @@ func compileAndroidResources(tempDir string, manifestData []byte, iconPath, fore
 		return "", "", "", fmt.Errorf("failed to find compiled flat files: %w", err)
 	}
 	linkArgs = append(linkArgs, flatFiles...)
+
+	if extraResources != "" {
+		// Keep app resources separate so the linker detects conflicting names.
+		archive := filepath.Join(tempDir, "extra-resources.zip")
+		if err := runCmd(exec.Command(aapt2, "compile", "--dir", extraResources, "-o", archive)); err != nil {
+			return "", "", "", fmt.Errorf("aapt2 compile failed for %s: %w", extraResources, err)
+		}
+		linkArgs = append(linkArgs, archive)
+	}
 
 	cmd := exec.Command(aapt2, linkArgs...)
 	if buildV {

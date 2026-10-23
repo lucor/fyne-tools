@@ -45,7 +45,7 @@ const (
 
 func goAndroidBuild(pkg *packages.Package, bundleID string, androidArchs []string,
 	iconPath, appName, version string, build, target int, release bool, iconFG, iconBG, iconMono string,
-	capabilities metadata.Capabilities, splash *metadata.Splash, androidDex string,
+	capabilities metadata.Capabilities, splash *metadata.Splash, androidDex, androidResources string,
 ) (map[string]bool, error) {
 	var env []string
 	if release { // Google Play Store requires 16K alignment
@@ -146,7 +146,7 @@ func goAndroidBuild(pkg *packages.Package, bundleID string, androidArchs []strin
 	if err != nil {
 		return nil, err
 	}
-	err = addAssets(apkw, manifestData, dir, iconPath, target, build, version, iconFG, iconBG, iconMono, splash)
+	err = addAssets(apkw, manifestData, dir, iconPath, target, build, version, iconFG, iconBG, iconMono, splash, androidResources)
 	if err != nil {
 		return nil, err
 	}
@@ -239,7 +239,7 @@ func detectAdaptiveIcons(dir, foreground, background, monochrome string) (string
 }
 
 func addAssets(apkw *Writer, manifestData []byte, dir, iconPath string, target int, versionCode int,
-	versionName, iconFG, iconBG, iconMono string, splash *metadata.Splash,
+	versionName, iconFG, iconBG, iconMono string, splash *metadata.Splash, androidResources string,
 ) error {
 	// Add any assets.
 	var arsc struct {
@@ -290,7 +290,7 @@ func addAssets(apkw *Writer, manifestData []byte, dir, iconPath string, target i
 	iconForeground, iconBackground, iconMonochrome := detectAdaptiveIcons(dir, iconFG, iconBG, iconMono)
 
 	// No adaptive icons or splash screen, use legacy build
-	if iconForeground == "" && (splash == nil || arsc.iconPath == "") {
+	if androidResources == "" && iconForeground == "" && (splash == nil || arsc.iconPath == "") {
 		return legacyAddAssets(apkw, manifestData, arsc.iconPath, target)
 	}
 
@@ -311,6 +311,7 @@ func addAssets(apkw *Writer, manifestData []byte, dir, iconPath string, target i
 		target,
 		versionCode,
 		versionName,
+		androidResources,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to compile android resources: %w", err)
